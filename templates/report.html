@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report an Item | Lost & Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('home') }}">← Back to home</a>
+        <h1>Report an Item</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="flash">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('report') }}">
+
+            <label>Report Type</label>
+            <div class="radio-group">
+                <label><input type="radio" name="type" value="lost" required> Lost</label>
+                <label><input type="radio" name="type" value="found"> Found</label>
+            </div>
+
+            <label for="name">Item Name</label>
+            <input type="text" id="name" name="name" placeholder="e.g. Black Wallet" required>
+
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+                <option value="">Select a category</option>
+                <option>Wallet</option>
+                <option>Phone</option>
+                <option>ID Card</option>
+                <option>Bag</option>
+                <option>Keys</option>
+                <option>Electronics</option>
+                <option>Clothing</option>
+                <option>Other</option>
+            </select>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4"
+                placeholder="Colour, brand, anything that identifies it"></textarea>
+
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" placeholder="e.g. CSE Block" required>
+
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+
+            <button type="submit">Submit Report</button>
+        </form>
+    </div>
+</body>
+</html>
