@@ -23,6 +23,11 @@ claims = db["claims"]
 
 CATEGORIES = ["Wallet", "Phone", "ID Card", "Bag", "Keys", "Electronics", "Clothing", "Other"]
 
+# Which status changes are allowed (current status -> allowed next statuses)
+NEXT_STATUS = {
+    "pending": ["approved", "rejected"],
+    "approved": ["returned"],
+}
 
 @app.route("/")
 def home():
@@ -109,6 +114,76 @@ def item_detail(item_id):
         return render_template("item.html", item=None), 404
 
     return render_template("item.html", item=item)
+
+@app.route("/item/<item_id>/claim", methods=["GET", "POST"])
+def claim_item(item_id):
+    try:
+        item = items.find_one({"_id": ObjectId(item_id)})
+    except InvalidId:
+        item = None
+
+    # Only active items can be claimed
+    if item is None or item["status"] != "active":
+        return render_template("item.html", item=None), 404
+
+    if request.method == "POST":
+        name = request.form.get("claimant", "").strip()
+        contact = request.form.get("contact", "").strip()
+        reason = request.form.get("reason", "").strip()
+
+        if not name or not contact or not reason:
+            flash("Please fill in all the fields.")
+            return redirect(url_for("claim_item", item_id=item_id))
+
+        claims.insert_one({
+            "item_id": item["_id"],
+            "claimant": name,
+            "contact": contact,
+            "reason": reason,
+            "status": "pending",
+            "created_at": datetime.utcnow()
+        })
+
+        flash("Your claim was submitted! The finder or admin will review it.")
+        return redirect(url_for("item_detail", item_id=item_id))
+
+    return render_template("claim.html", item=item)
+
+
+@app.route("/admin/claims")
+def admin_claims():
+    all_claims = list(claims.find().sort("created_at", -1))
+    for c in all_claims:
+        c["item"] = items.find_one({"_id": c["item_id"]})  # attach the item so we can show its name
+    return render_template("admin_claims.html", claims=all_claims)
+
+
+@app.route("/admin/claims/<claim_id>/status", methods=["POST"])
+def update_claim_status(claim_id):
+    new_status = request.form.get("status")
+
+    try:
+        claim = claims.find_one({"_id": ObjectId(claim_id)})
+    except InvalidId:
+        claim = None
+
+    if claim is None:
+        flash("Claim not found.")
+        return redirect(url_for("admin_claims"))
+
+    # Only allow the changes listed in NEXT_STATUS
+    if new_status not in NEXT_STATUS.get(claim["status"], []):
+        flash("That status change isn't allowed.")
+        return redirect(url_for("admin_claims"))
+
+    claims.update_one({"_id": claim["_id"]}, {"$set": {"status": new_status}})
+
+    # When the item is handed back, take it off the homepage
+    if new_status == "returned":
+        items.update_one({"_id": claim["item_id"]}, {"$set": {"status": "returned"}})
+
+    flash(f"Claim marked as {new_status}.")
+    return redirect(url_for("admin_claims"))
 
 if __name__ == "__main__":
     app.run(debug=True)

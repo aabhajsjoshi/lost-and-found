@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Item | Lost & Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('item_detail', item_id=item._id) }}">← Back to item</a>
+        <h1>Claim: {{ item.name }}</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="flash">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('claim_item', item_id=item._id) }}">
+            <label for="claimant">Your Name</label>
+            <input type="text" id="claimant" name="claimant" required>
+
+            <label for="contact">Phone or Email</label>
+            <input type="text" id="contact" name="contact" required>
+
+            <label for="reason">Why do you think this item belongs to you?</label>
+            <textarea id="reason" name="reason" rows="4"
+                placeholder="Describe something only the owner would know"></textarea>
+
+            <button type="submit">Submit Claim</button>
+        </form>
+    </div>
+</body>
+</html>

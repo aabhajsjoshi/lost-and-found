@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Claims | Lost & Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container wide">
+        <a href="{{ url_for('home') }}">← Back to home</a>
+        <h1>Manage Claims</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="flash">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        {% if claims %}
+            {% for claim in claims %}
+                <div class="card">
+                    <span class="badge {{ claim.status }}">{{ claim.status|upper }}</span>
+                    <h3>
+                        {% if claim.item %}
+                            <a href="{{ url_for('item_detail', item_id=claim.item._id) }}">{{ claim.item.name }}</a>
+                        {% else %}
+                            (item deleted)
+                        {% endif %}
+                    </h3>
+                    <p><strong>Claimed by:</strong> {{ claim.claimant }} ({{ claim.contact }})</p>
+                    <p><strong>Reason:</strong> {{ claim.reason }}</p>
+
+                    <div class="claim-actions">
+                        {% if claim.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('update_claim_status', claim_id=claim._id) }}">
+                                <input type="hidden" name="status" value="approved">
+                                <button type="submit">Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('update_claim_status', claim_id=claim._id) }}">
+                                <input type="hidden" name="status" value="rejected">
+                                <button type="submit" class="danger">Reject</button>
+                            </form>
+                        {% elif claim.status == 'approved' %}
+                            <form method="POST" action="{{ url_for('update_claim_status', claim_id=claim._id) }}">
+                                <input type="hidden" name="status" value="returned">
+                                <button type="submit">Mark as Returned</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No claims yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

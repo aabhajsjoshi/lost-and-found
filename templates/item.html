@@ -10,6 +10,12 @@
     <div class="container">
         <a href="{{ url_for('home') }}">← Back to all items</a>
 
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="flash">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
         {% if item %}
             <span class="badge {{ item.type }}">{{ item.type|upper }}</span>
             <h1>{{ item.name }}</h1>
@@ -27,7 +33,9 @@
             <p>{{ item.description or "No description provided." }}</p>
 
             <!-- This button gets connected in Part 6 -->
-            <a href="#" class="btn">Claim Item</a>
+            {% if item.status == 'active' %}
+                <a href="{{ url_for('claim_item', item_id=item._id) }}" class="btn">Claim Item</a>
+            {% endif %}
         {% else %}
             <h1>Item not found</h1>
             <p>This item doesn't exist or may have been removed.</p>

@@ -10,6 +10,7 @@
     <div class="container wide">
         <h1>Campus Lost & Found</h1>
         <a href="{{ url_for('report') }}" class="btn">Report an Item</a>
+        <a href="{{ url_for('admin_claims') }}">Manage Claims</a>
 
         <form method="GET" action="{{ url_for('home') }}" class="filters">
             <input type="text" name="q" placeholder="Search items..." value="{{ q }}">
