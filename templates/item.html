@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if item %}{{ item.name }}{% else %}Item not found{% endif %} | Lost & Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('home') }}">← Back to all items</a>
+
+        {% if item %}
+            <span class="badge {{ item.type }}">{{ item.type|upper }}</span>
+            <h1>{{ item.name }}</h1>
+
+            {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.name }}" class="item-image">
+            {% endif %}
+
+            <div class="detail"><strong>Category:</strong> {{ item.category }}</div>
+            <div class="detail"><strong>Location:</strong> {{ item.location }}</div>
+            <div class="detail"><strong>Date:</strong> {{ item.date }}</div>
+            <div class="detail"><strong>Status:</strong> {{ item.status }}</div>
+
+            <h3>Description</h3>
+            <p>{{ item.description or "No description provided." }}</p>
+
+            <!-- This button gets connected in Part 6 -->
+            <a href="#" class="btn">Claim Item</a>
+        {% else %}
+            <h1>Item not found</h1>
+            <p>This item doesn't exist or may have been removed.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

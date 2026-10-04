@@ -4,6 +4,8 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from bson import ObjectId
+from bson.errors import InvalidId
 
 load_dotenv()  # reads your .env file
 
@@ -95,6 +97,18 @@ def report():
         return redirect(url_for("report"))
 
     return render_template("report.html")
+
+@app.route("/item/<item_id>")
+def item_detail(item_id):
+    try:
+        item = items.find_one({"_id": ObjectId(item_id)})
+    except InvalidId:
+        item = None  # the id in the address wasn't a real id
+
+    if item is None:
+        return render_template("item.html", item=None), 404
+
+    return render_template("item.html", item=item)
 
 if __name__ == "__main__":
     app.run(debug=True)
