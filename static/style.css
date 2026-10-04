@@ -51,3 +51,62 @@ button, .btn {
     padding: 10px;
     border-radius: 6px;
 }
+
+.container.wide {
+    max-width: 800px;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.filters input[type="text"] {
+    flex: 1;
+    min-width: 160px;
+    padding: 8px;
+}
+
+.filters select {
+    padding: 8px;
+}
+
+.filters button {
+    margin-top: 0;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+}
+
+.card h3 {
+    margin: 6px 0;
+}
+
+.card p {
+    margin: 0;
+    color: #555;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+.badge.lost {
+    background: #dc2626;
+}
+
+.badge.found {
+    background: #16a34a;
+}

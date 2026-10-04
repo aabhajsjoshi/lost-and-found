@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
@@ -18,9 +19,38 @@ items = db["items"]
 claims = db["claims"]
 
 
+CATEGORIES = ["Wallet", "Phone", "ID Card", "Bag", "Keys", "Electronics", "Clothing", "Other"]
+
+
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # Read what the user typed or picked (from the URL)
+    q = request.args.get("q", "").strip()
+    item_type = request.args.get("type", "")
+    category = request.args.get("category", "")
+
+    # Build the search: only active items, plus any filters the user chose
+    query = {"status": "active"}
+
+    if q:
+        # re.escape makes special characters safe; "i" means ignore capital letters
+        query["name"] = {"$regex": re.escape(q), "$options": "i"}
+    if item_type in ("lost", "found"):
+        query["type"] = item_type
+    if category:
+        query["category"] = category
+
+    # Newest first
+    results = list(items.find(query).sort("created_at", -1))
+
+    return render_template(
+        "index.html",
+        items=results,
+        q=q,
+        selected_type=item_type,
+        selected_category=category,
+        categories=CATEGORIES,
+    )
 
 
 # Temporary route just to test the database connection
