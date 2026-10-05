@@ -6,6 +6,8 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from bson import ObjectId
 from bson.errors import InvalidId
+import uuid
+from azure.storage.blob import BlobServiceClient, ContentSettings
 
 load_dotenv()  # reads your .env file
 
@@ -20,6 +22,36 @@ users = db["users"]
 items = db["items"]
 claims = db["claims"]
 
+# Limit uploads to 5 MB
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+
+# Connect to Azure Blob Storage
+blob_service = BlobServiceClient.from_connection_string(
+    os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+)
+container_client = blob_service.get_container_client("item-images")
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+def upload_image(file):
+    """Uploads a photo to Azure and returns its link.
+    Returns "" if no photo was chosen, and None if the file type isn't allowed."""
+    if not file or file.filename == "":
+        return ""
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        return None
+
+    # Random file name so two people uploading "photo.jpg" don't overwrite each other
+    blob_name = f"{uuid.uuid4().hex}.{ext}"
+    blob_client = container_client.get_blob_client(blob_name)
+    blob_client.upload_blob(
+        file.stream,
+        content_settings=ContentSettings(content_type=file.content_type),
+    )
+    return blob_client.url
 
 CATEGORIES = ["Wallet", "Phone", "ID Card", "Bag", "Keys", "Electronics", "Clothing", "Other"]
 
@@ -86,6 +118,17 @@ def report():
             flash("Please fill in all the required fields.")
             return redirect(url_for("report"))
 
+                # Upload the photo (if there is one)
+        try:
+            image_url = upload_image(request.files.get("photo"))
+        except Exception:
+            flash("Photo upload failed. Please try again.")
+            return redirect(url_for("report"))
+
+        if image_url is None:
+            flash("Only PNG, JPG, GIF or WEBP photos are allowed.")
+            return redirect(url_for("report"))
+
         items.insert_one({
             "name": name,
             "type": item_type,
@@ -93,7 +136,7 @@ def report():
             "description": description,
             "location": location,
             "date": date,
-            "image_url": "",      # filled in on Day 2 with Azure Blob Storage
+            "image_url": image_url,      # filled in on Day 2 with Azure Blob Storage
             "status": "active",
             "created_at": datetime.utcnow()
         })

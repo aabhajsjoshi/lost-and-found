@@ -17,7 +17,7 @@
             {% endfor %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('report') }}">
+        <form method="POST" action="{{ url_for('report') }}" enctype="multipart/form-data">
 
             <label>Report Type</label>
             <div class="radio-group">
@@ -50,6 +50,9 @@
 
             <label for="date">Date</label>
             <input type="date" id="date" name="date" required>
+
+            <label for="photo">Photo (optional)</label>
+            <input type="file" id="photo" name="photo" accept="image/*">
 
             <button type="submit">Submit Report</button>
         </form>
